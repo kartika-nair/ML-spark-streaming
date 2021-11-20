@@ -1,17 +1,28 @@
-import findspark
-# findspark.init()
-from pyspark import SparkContext
-from pyspark.streaming import StreamingContext
-from pyspark.sql import SQLContext
-from pyspark.sql import SparkSession
+import sys
+import pyspark
+from operator import add
 
-sc = SparkContext(appName="SA")
-spark = SparkSession.builder.appName("python spark create rdd").config("spark.some.config.option","some-value").getOrCreate()
-# Create a local StreamingContext with batch interval of 1 second
-ssc = StreamingContext(sc, 1)
-sql_context = SQLContext(sc)
-# Create a DStream that conencts to hostname:port
-lines = ssc.socketTextStream("localhost", 6100)
-ssc.start()
-ssc.awaitTermination()
+from pyspark.sql import SparkSession, functions
 
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print("Usage: SentimentAnalysis <file>", file=sys.stderr)
+        sys.exit(-1)
+
+    spark = SparkSession.builder.appName("SentimentAnalysis").getOrCreate()
+
+    lines = spark.read.text(sys.argv[1])
+    
+    # counts = lines.flatMap(lambda x: x.split(lines[1])).map(lambda x: (x, 1)).reduceByKey(add)
+    
+    split_col = functions.split(lines['Sentiment,Tweet'], ',')
+    df = lines.withColumn('Sentiment', split_col.getItem(0)).show()
+    df = lines.withColumn('Tweet', split_col.getItem(1)).show()
+    
+    '''
+    output = lines.collect()
+    for i in output:
+    	print(i, sep = '\n')
+    '''
+
+    spark.stop()
