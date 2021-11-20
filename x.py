@@ -17,9 +17,9 @@ sql_context = SQLContext(sc)
 lines = ssc.socketTextStream("localhost", 6100)
 
 # lines = spark.read.text(sys.argv[1]).rdd.map(lambda r: r[0])
-words = lines.flatMap(lambda line: line.split(","))
+words = lines.flatMap(lambda line: line.split("\n"))
 
-print(words.collect())
+words.pprint()
 
 pairs = words.map(lambda word: (word, 1))
 wordCounts = pairs.reduceByKey(lambda x, y: x + y)
