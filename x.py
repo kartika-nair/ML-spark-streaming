@@ -1,51 +1,43 @@
-import sys
-import pyspark
-from operator import add
-from pyspark.sql import SparkSession, functions
-import stream
-
-import findspark
 from pyspark import SparkContext
 from pyspark.streaming import StreamingContext
-from pyspark.sql import SQLContext
+from pyspark.sql import SparkSession
 
-sc = SparkContext("local[2]", "NetworkWordCount")
-spark = SparkSession.builder.appName("python spark create rdd").config("spark.some.config.option","some-value").getOrCreate()
+
+# STREAMING
+
+sc= SparkContext("local[2]","sent")
+spark = SparkSession.builder.appName("Sentiment").getOrCreate()
 ssc = StreamingContext(sc, 1)
-sql_context = SQLContext(sc)
 
-lines = ssc.socketTextStream("localhost", 6100)
+lines = ssc.socketTextStream('localhost', 6100)
 
-# lines = spark.read.text(sys.argv[1]).rdd.map(lambda r: r[0])
-words = lines.flatMap(lambda line: line.split("\n"))
+def streamer(rdd):
+	df=spark.read.json(rdd)
+	for row in df.rdd.toLocalIterator():
+		for i in range(1000):
+			print(row[str(i)]['feature0'],row[str(i)]['feature1'])
 
-words.pprint()
 
-pairs = words.map(lambda word: (word, 1))
-wordCounts = pairs.reduceByKey(lambda x, y: x + y)
-# wordCounts.pprint()
+# HASHING + IDF + TOKENISER -> LOGISTIC REGRESSION
 
+from pyspark.ml.feature import HashingTF, IDF, Tokenizer
+from pyspark.ml.feature import StringIndexer
+from pyspark.ml import Pipeline
+from pyspark.ml.classification import LogisticRegression
+from pyspark.ml.evaluation import BinaryClassificationEvaluator
+
+def logRegression(rdd):
+	# df = spark.read.json(rdd)
+	training = spark.read.format("json").load(rdd)
+	lr = LogisticRegression(maxIter=10, regParam=0.3, elasticNetParam=0.8)
+	lrModel = lr.fit(training)
+	trainingSummary = lrModel.summary
+	accuracy = trainingSummary.accuracy
+	print(accuracy)
+
+lines.foreachRDD(lambda rdd : logRegression(rdd))
+
+
+# CONT STREAM
 ssc.start()
 ssc.awaitTermination()
-
-'''
-
-if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: SentimentAnalysis <file>", file=sys.stderr)
-        sys.exit(-1)
-  
-    spark = SparkSession.builder.appName("SentimentAnalysis").getOrCreate()
-
-    lines = spark.read.text(sys.argv[1])
-    sent, tw = lines.flatMap(lambda x: x.split(lines[1]))
-    
-    for i in sent.collect():
-    	print(i)
-    
-    output = lines.collect()
-    for i in output:
-    	print(i, sep = '\n')
-
-    spark.stop()
-'''
