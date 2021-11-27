@@ -1,10 +1,7 @@
-from pyspark import rdd
-from pyspark.sql.types import StructType, StructField, StringType
-
 from pyspark import SparkContext
 from pyspark.streaming import StreamingContext
-from pyspark.sql import SparkSession
 from pyspark.sql import SQLContext
+from pyspark.sql import SparkSession
 
 from pyspark.ml.feature import HashingTF, IDF, Tokenizer
 from pyspark.ml.feature import StringIndexer
@@ -12,14 +9,13 @@ from pyspark.ml import Pipeline
 from pyspark.ml.classification import LogisticRegression
 from pyspark.ml.evaluation import BinaryClassificationEvaluator
 
-# STREAMING
+import sys
+import json
 
-sc = SparkContext("local[2]", "sent")
-spark = SparkSession.builder.appName("Sentiment").getOrCreate()
-spark.sparkContext.setLogLevel('WARN')
-ssc = StreamingContext(sc, 1)
-
-dstream = ssc.socketTextStream('localhost', 6100)
+spark = SparkSession.builder.master('local[2]').appName('Sentiment').getOrCreate()
+ssc = StreamingContext(spark.sparkContext, 1)
+sqlContext = SQLContext(spark)
+spark.sparkContext.setLogLevel('ERROR')
 
 def logRegression(df):
 	accuracy = -1
@@ -28,8 +24,8 @@ def logRegression(df):
 	
 	tokenizer = Tokenizer(inputCol = 'Tweet', outputCol = 'Words')
 	hashtf = HashingTF(numFeatures = 2**16, inputCol = 'Words', outputCol = 'FeatureVectors')
-	idf = IDF(inputCol = 'FeatureVectors', outputCol = 'Features', minDocFreq=5)
-	label_stringIdx = StringIndexer(inputCol = 'Sentiment', outputCol = 'Label')
+	idf = IDF(inputCol = 'FeatureVectors', outputCol = 'features', minDocFreq=5)
+	label_stringIdx = StringIndexer(inputCol = 'Sentiment', outputCol = 'label')
 	
 	pipeline = Pipeline(stages = [tokenizer, hashtf, idf, label_stringIdx])
 	
@@ -38,34 +34,30 @@ def logRegression(df):
 	pipelineFit = pipeline.fit(subsetData[0])
 	train_df = pipelineFit.transform(subsetData[0])
 	val_df = pipelineFit.transform(subsetData[1])
-	# train_df.show(5)
 	
 	lr = LogisticRegression(maxIter = 100)
 	lrModel = lr.fit(train_df)
 	predictions = lrModel.transform(val_df)
 	
-	evaluator = BinaryClassificationEvaluator(rawPredictionCol = "RawPrediction")
+	evaluator = BinaryClassificationEvaluator(rawPredictionCol = 'rawPrediction')
 	accuracy = evaluator.evaluate(predictions)
 
 	return accuracy
 
 
 def streamer(rdd):
-	jsonDF = spark.read.json(rdd)
-	schema = StructType([StructField('Sentiment', StringType(), True), StructField('Tweet', StringType(), True)])
-	df = spark.createDataFrame([], schema)
-	
-	for row in jsonDF.rdd.toLocalIterator():
-		for i in range(10000):
-			# print(row[str(i)]['feature0'],row[str(i)]['feature1'])
-			newRow = spark.createDataFrame([(row[str(i)]['feature0'], row[str(i)]['feature1'])], schema)
-			df = df.unionByName(newRow)
-			
-	accuracy_logRegression = logRegression(df)
-	print('Logistic Regression Accuracy =', accuracy_logRegression)
+	rddValues = rdd.collect()
+	if(len(rddValues) > 0):
+		SCHEMA = ['Sentiment', 'Tweet']
+		df = spark.createDataFrame(json.loads(rddValues[0]).values(), SCHEMA)
+		# df.show(truncate = False)
+		accuracy_logRegression = logRegression(df)
+		print('Logistic Regression Accuracy =', accuracy_logRegression)
 
-dstream.foreachRDD(lambda rdd : streamer(rdd))
+dstream = ssc.socketTextStream("localhost", 6100)
 
-# CONT STREAM
+dstream1 = dstream.flatMap(lambda line: line.split("\n"))
+dstream1.foreachRDD(lambda x : streamer(x))
+
 ssc.start()
 ssc.awaitTermination()
