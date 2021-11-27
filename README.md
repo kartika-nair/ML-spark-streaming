@@ -3,6 +3,8 @@ Using Spark Streaming and Spark MLlib (via PySpark) to perform Sentiment Analysi
 
 ## Models Implemented
 - Logistic Regression
+- Naive Bayes
+- Linear SVM
 
 ## Team Members
 - [Anagha H M](https://github.com/Anagha-hm)
