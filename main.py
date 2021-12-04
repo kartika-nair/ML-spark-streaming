@@ -9,7 +9,7 @@ import sys
 import json
 
 # FILE IMPORTS
-from models import LogisticRegression
+from models import LogisticRegression, NaiveBayes, SVM, GMM, KMeans
 from PreProcessing import preproc
 
 spark = SparkSession.builder.master('local[2]').appName('Sentiment').getOrCreate()
@@ -28,6 +28,15 @@ def streamer(rdd):
 		
 		accuracy_logRegression = LogisticRegression.logRegression(df)
 		print('Logistic Regression Accuracy =', accuracy_logRegression)
+		
+		accuracy_NB = NaiveBayes.nBayes(df)
+		print('Naive Bayes Accuracy =', accuracy_NB)
+		
+		accuracy_SVM = SVM.linSVC(df)
+		print('Linear SVM Accuracy =', accuracy_SVM)
+		
+		error_KMM = KMeans.kmm(df)
+		print('K-Means Clustering Squared Error =', error_KMM)
 
 dstream = ssc.socketTextStream("localhost", 6100)
 
