@@ -9,7 +9,7 @@ import sys
 import json
 
 # FILE IMPORTS
-from models import LogisticRegression, NaiveBayes, SVM, GMM, KMeans
+from models import LogisticRegression, NaiveBayes, SVM, KMeans
 from PreProcessing import preproc
 
 spark = SparkSession.builder.master('local[2]').appName('Sentiment').getOrCreate()
