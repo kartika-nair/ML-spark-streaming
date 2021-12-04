@@ -3,6 +3,7 @@ from pyspark.ml.feature import StringIndexer
 from pyspark.ml import Pipeline
 from pyspark.ml.clustering import KMeans
 from pyspark.ml.evaluation import BinaryClassificationEvaluator
+from pyspark.ml.evaluation import ClusteringEvaluator
 # from org.apache.spark.ml.evaluation import ClusteringEvaluator
 
 def kmm(df):
@@ -15,14 +16,19 @@ def kmm(df):
 	
 	pipeline = Pipeline(stages = [tokenizer, hashtf, idf, label_stringIdx])
 
-	pipelineFit = pipeline.fit('Sentiment', 'Tweet')
-	train_df = pipelineFit.transform(df[1:])
-	# val_df = pipelineFit.transform(subsetData[1])
+	subsetData = df.randomSplit([0.9, 0.1])
+
+	pipelineFit = pipeline.fit(subsetData[0])
+	train_df = pipelineFit.transform(subsetData[0])
+	val_df = pipelineFit.transform(subsetData[1])
 	
 	kmeans = KMeans().setK(10).setSeed(1)
 	model = kmeans.fit(train_df)
 	centers = model.clusterCenters()
 	
-	squaredError = model.computeCost(train_df)
+	predictions = model.transform(val_df)
+	
+	evaluator = ClusteringEvaluator()
+	squaredError = evaluator.evaluate(predictions)
 
-	return squaredError
+	return abs(squaredError)
