@@ -13,7 +13,7 @@ from pyspark.sql.functions import col, size
 from pyspark.ml.evaluation import BinaryClassificationEvaluator
 
 import pickle
-
+import joblib
 import numpy as np
 
 
@@ -32,3 +32,23 @@ def linSVC(df):
 	accuracy = clf.score(dfs_val, dft_val)
 	
 	return accuracy
+	
+def model_lin_svc(df):
+
+	indexer = StringIndexer(inputCol="Tweet", outputCol="Tweets_Indexed", stringOrderType='alphabetAsc')
+	pipeline = Pipeline(stages=[indexer])
+	pipelineFit = pipeline.fit(df)
+	dataset = pipelineFit.transform(df)
+
+	new_df=dataset.select(['Tweets_Indexed'])
+	new_df_target=dataset.select(['Sentiment'])
+	
+	x=np.array(new_df.select('Tweets_Indexed').collect())
+	y=np.array(new_df_target.select('Sentiment').collect())
+	
+	model_sgd = SGDClassifier(alpha=0.0001, loss='log', penalty='l2', n_jobs=-1, shuffle=True)
+	
+	model_sgd.partial_fit(x,y.ravel(), classes=[0,4])
+	joblib.dump(model_sgd, 'SGD.pkl')
+	result = model_sgd.score(x, y)
+	return result 
