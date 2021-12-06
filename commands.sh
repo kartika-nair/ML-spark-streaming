@@ -1,7 +1,7 @@
 # Command to run stream.py file
+python3 stream.py -f sentiment -b <batch_size>
 
-python3 stream.py -f <file_size> -b <batch_size>
+# Command to run either main.py or incrementalMain.py
+$SPARK_HOME/bin/spark-submit <file>.py
 
-$SPARK_HOME/bin/spark-submit <file>.py <dataset>.csv 2> log.txt > output.txt
-
-# preferably keep dataset in the same folder
+# Keep train and test CSV files in subdirectory titled 'sentiment'
