@@ -21,23 +21,7 @@ import joblib
 
 import numpy as np
 
-
 def logRegression(df):
-	dfs = np.array(df.select('Sentiment').collect())
-	dft = np.array(df.select('Tweet').collect())
-	
-	dfs_train, dfs_val, dft_train, dft_val = train_test_split(dfs, dft, test_size = 0.1)
-	
-	classifier = SGDClassifier(loss = 'log', max_iter = 1000, tol = 1e-3)
-	
-	clf = make_pipeline(StandardScaler(), classifier)
-	clf.fit(dfs_train, np.ravel(dft_train))
-	
-	accuracy = clf.score(dfs_val, dft_val)
-	
-	return accuracy
-
-def model(df):
 	
 	indexer = StringIndexer(inputCol="Tweet", outputCol="Tweets_Indexed", stringOrderType='alphabetAsc')
 	pipeline = Pipeline(stages=[indexer])

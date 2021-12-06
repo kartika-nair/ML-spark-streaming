@@ -15,40 +15,24 @@ from pyspark.ml.evaluation import BinaryClassificationEvaluator
 import pickle
 import joblib
 import numpy as np
-
-
-def linSVC(df):
-	
-	dfs = np.array(df.select('Sentiment').collect())
-	dft = np.array(df.select('Tweet').collect())
-	
-	dfs_train, dfs_val, dft_train, dft_val = train_test_split(dfs, dft, test_size = 0.1)
-	
-	classifier = SGDClassifier(loss = 'hinge', max_iter = 1000, tol = 1e-3)
-	
-	clf = make_pipeline(StandardScaler(), classifier)
-	clf.fit(dfs_train, np.ravel(dft_train))
-	
-	accuracy = clf.score(dfs_val, dft_val)
-	
-	return accuracy
 	
 def model_lin_svc(df):
 
 	indexer = StringIndexer(inputCol="Tweet", outputCol="Tweets_Indexed", stringOrderType='alphabetAsc')
 	pipeline = Pipeline(stages=[indexer])
 	pipelineFit = pipeline.fit(df)
-	dataset = pipelineFit.transform(df)
+	fitted = pipelineFit.transform(df)
 
-	new_df=dataset.select(['Tweets_Indexed'])
-	new_df_target=dataset.select(['Sentiment'])
+	df_new = fitted.select(['Tweets_Indexed'])
+	df_new_target = fitted.select(['Sentiment'])
 	
-	x=np.array(new_df.select('Tweets_Indexed').collect())
-	y=np.array(new_df_target.select('Sentiment').collect())
+	x=np.array(df_new.select('Tweets_Indexed').collect())
+	y=np.array(df_new_target.select('Sentiment').collect())
 	
-	model_sgd = SGDClassifier(alpha=0.0001, loss='log', penalty='l2', n_jobs=-1, shuffle=True)
+	model_sgd = SGDClassifier(alpha=0.0005, loss='log', shuffle=True , max_iter=1000 , tol = 1e-3)
 	
 	model_sgd.partial_fit(x,y.ravel(), classes=[0,4])
 	joblib.dump(model_sgd, 'SGD.pkl')
+	
 	result = model_sgd.score(x, y)
 	return result 
