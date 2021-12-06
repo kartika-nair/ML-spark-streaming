@@ -147,7 +147,6 @@ def streamer(rdd):
 		kmm_pred = model_kmm.predict(x)
 		
 		values_kmm.append(count)
-		values_kmm.append(model_kmm.score(x,y))
 		values_kmm.append(f1_score(y, kmm_pred, pos_label = 4,average='micro'))
 		values_kmm.append(recall_score(y, kmm_pred, pos_label = 4,average='micro'))
 		values_kmm.append(precision_score(y, kmm_pred, pos_label = 4,average='micro'))
