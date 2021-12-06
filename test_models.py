@@ -22,10 +22,10 @@ ssc = StreamingContext(spark.sparkContext, 1)
 sqlContext = SQLContext(spark)
 spark.sparkContext.setLogLevel('ERROR')
 
-#load the models 
+# load the models 
 model_lm = joblib.load('Logistic_Regression.pkl')
-# model_svm = joblib.load('SGD.pkl')
-# model_nb = joblib.load('naiveBayes.pkl')
+model_svm = joblib.load('SGD.pkl')
+model_nb = joblib.load('naiveBayes.pkl')
 # model_kmm = joblib.load('kmm.pkl')
 
 # number of batches 
@@ -64,11 +64,12 @@ def streamer(rdd):
 		y=np.array(df_new_target.select('Sentiment').collect())
 
 		result_lm = result_lm + model_lm.score(x,y)
-		print("Logistic Regression Accuracy for batch",count,"is",result_lm,sep=' ')
+		print("Logistic Regression Accuracy for batch",count,"is",model_lm.score(x,y),sep=' ')
 		result_svm = result_svm + model_svm.score(x,y)
-		print("SVM Accuracy for batch",count,"is",result_lm,sep=' ')
+		print("SVM Accuracy for batch",count,"is",model_svm.score(x,y),sep=' ')
 		result_nb = result_nb + model_nb.score(x,y)
-		print("Naive Bayes Accuracy for batch",count,"is",result_lm,sep=' ')
+		print("Naive Bayes Accuracy for batch",count,"is",model_nb.score(x,y),sep=' ')
+		
 		
 		count = count + 1 
 		
