@@ -4,17 +4,17 @@ from pyspark.streaming import StreamingContext
 from pyspark.sql import SQLContext
 from pyspark.sql import SparkSession
 from pyspark.ml.feature import StringIndexer
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import accuracy_score, precision_score, recall_score, confusion_matrix,f1_score
 import sys
 import json
-
-# FILE IMPORTS
-from incrementalModels import incLR, incNB, incSVM, incKM
 from PreProcessing import preproc
 from pyspark.ml import Pipeline
 import numpy as np
 import pickle 
 import joblib
+
+# FILE IMPORTS
+from incrementalModels import incLR, incNB, incSVM, incKM
 
 # SPARK CONTEXT
 spark = SparkSession.builder.master('local[2]').appName('Sentiment').getOrCreate()
@@ -87,22 +87,22 @@ def streamer(rdd):
 		print("K-Means Clustering Confusion Matrix for batch", count, "is", confusion_matrix(y, kmm_pred), sep=' ')
 		
 		# F1 SCORES
-		print("Logistic Regression F1 Score for batch", count, "is", f1_score(y, lm_pred, pos_label = 4), sep=' ')
-		print("SVM F1 Score for batch", count, "is", f1_score(y, svm_pred, pos_label = 4), sep=' ')
-		print("Naive Bayes F1 Score for batch", count, "is", f1_score(y, nb_pred, pos_label = 4), sep=' ')
-		print("K-Means Clustering F1 Score for batch", count, "is", f1_score(y, kmm_pred, pos_label = 4), sep=' ')
+		print("Logistic Regression F1 Score for batch", count, "is", f1_score(y, lm_pred, pos_label = 4,average='micro'), sep=' ')
+		print("SVM F1 Score for batch", count, "is", f1_score(y, svm_pred, pos_label = 4,average='micro'), sep=' ')
+		print("Naive Bayes F1 Score for batch", count, "is", f1_score(y, nb_pred, pos_label = 4,average='micro'), sep=' ')
+		print("K-Means Clustering F1 Score for batch", count, "is", f1_score(y, kmm_pred, pos_label = 4,average='micro'), sep=' ')
 		
 		# RECALL
-		print("Logistic Regression F1 Score for batch", count, "is", recall_score(y, lm_pred, pos_label = 4), sep=' ')
-		print("SVM F1 Score for batch", count, "is", recall_score(y, svm_pred, pos_label = 4), sep=' ')
-		print("Naive Bayes F1 Score for batch", count, "is", recall_score(y, nb_pred, pos_label = 4), sep=' ')
-		print("K-Means Clustering F1 Score for batch", count, "is", recall_score(y, kmm_pred, pos_label = 4), sep=' ')
+		print("Logistic Regression Recall for batch", count, "is", recall_score(y, lm_pred, pos_label = 4), sep=' ')
+		print("SVM Recall for batch", count, "is", recall_score(y, svm_pred, pos_label = 4), sep=' ')
+		print("Naive Bayes Recall for batch", count, "is", recall_score(y, nb_pred, pos_label = 4), sep=' ')
+		print("K-Means Clustering Recall for batch", count, "is", recall_score(y, kmm_pred, pos_label = 4,average='micro'), sep=' ')
 		
 		# PRECISION
-		print("Logistic Regression F1 Score for batch", count, "is", precision_score(y, lm_pred, pos_label = 4), sep=' ')
-		print("SVM F1 Score for batch", count, "is", precision_score(y, svm_pred, pos_label = 4), sep=' ')
-		print("Naive Bayes F1 Score for batch", count, "is", precision_score(y, nb_pred, pos_label = 4), sep=' ')
-		print("K-Means Clustering F1 Score for batch", count, "is", precision_score(y, kmm_pred, pos_label = 4), sep=' ')
+		print("Logistic Regression Precision for batch", count, "is", precision_score(y, lm_pred, pos_label = 4), sep=' ')
+		print("SVM Precision for batch", count, "is", precision_score(y, svm_pred, pos_label = 4), sep=' ')
+		print("Naive Bayes Precision for batch", count, "is", precision_score(y, nb_pred, pos_label = 4), sep=' ')
+		print("K-Means Clustering Precision for batch", count, "is", precision_score(y, kmm_pred, pos_label = 4,average='micro'), sep=' ')
 		
 		count = count + 1 
 
