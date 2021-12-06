@@ -36,7 +36,7 @@ def nBayes(df):
 	sent = np.array(new_df_target.select('Sentiment').collect())
 	
 	model_nb = BernoulliNB()
-	model_nb = model_nb.fit(twt, sent.ravel())
+	model_nb = model_nb.partial_fit(twt, sent.ravel(), classes = [0, 4])
 	
 	joblib.dump(model_nb,'naiveBayes.pkl')
 	acc = model_nb.score(twt, sent)
