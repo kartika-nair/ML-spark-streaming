@@ -4,7 +4,7 @@ from pyspark.streaming import StreamingContext
 from pyspark.sql import SQLContext
 from pyspark.sql import SparkSession
 from pyspark.ml.feature import StringIndexer
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import accuracy_score, precision_score, recall_score, confusion_matrix,f1_score
 import sys
 import json
 import csv
@@ -96,12 +96,16 @@ def streamer(rdd):
 		result_lm = result_lm + model_lm.score(x,y)
 		lm_pred = model_lm.predict(x)
 		
-		values_lr.append(count, model_lm.score(x,y), f1_score(y, lm_pred, pos_label = 4), recall_score(y, lm_pred, pos_label = 4), precision_score(y, lm_pred, pos_label = 4))
+		values_lr.append(count)
+		values_lr.append(model_lm.score(x,y))
+		values_lr.append(f1_score(y, lm_pred, pos_label = 4,average='micro'))
+		values_lr.append(recall_score(y, lm_pred, pos_label = 4))
+		values_lr.append(precision_score(y, lm_pred, pos_label = 4))
 		
 		with open('metrics/logRegression.csv', 'a') as dataFile:
 			writeFile = csv.writer(dataFile, dialect = 'excel')
 			for i in values_lr:
-				writeFile.writerow(i)
+				writeFile.writerow(str(i))
 
 		# SVM METRICS
 		values_svm = []
@@ -109,12 +113,16 @@ def streamer(rdd):
 		result_svm = result_svm + model_svm.score(x,y)
 		svm_pred = model_svm.predict(x)
 		
-		values_svm.append(count, model_svm.score(x,y), f1_score(y, svm_pred, pos_label = 4), recall_score(y, svm_pred, pos_label = 4), precision_score(y, svm_pred, pos_label = 4))
+		values_svm.append(count)
+		values_svm.append(model_svm.score(x,y))
+		values_svm.append(f1_score(y, svm_pred, pos_label = 4,average='micro'))
+		values_svm.append(recall_score(y, svm_pred, pos_label = 4))
+		values_svm.append(precision_score(y, svm_pred, pos_label = 4))
 		
 		with open('metrics/svm.csv', 'a') as dataFile:
 			writeFile = csv.writer(dataFile, dialect = 'excel')
 			for i in values_svm:
-				writeFile.writerow(i)
+				writeFile.writerow(str(i))
 		
 		# NAIVE BAYES METRICS
 		values_nb = []
@@ -122,12 +130,16 @@ def streamer(rdd):
 		result_nb = result_nb + model_nb.score(x,y)
 		nb_pred = model_nb.predict(x)
 		
-		values_nb.append(count, model_nb.score(x,y), f1_score(y, nb_pred, pos_label = 4), recall_score(y, nb_pred, pos_label = 4), precision_score(y, nb_pred, pos_label = 4))
+		values_nb.append(count)
+		values_nb.append(model_nb.score(x,y))
+		values_nb.append(f1_score(y, nb_pred, pos_label = 4,average='micro'))
+		values_nb.append(recall_score(y, nb_pred, pos_label = 4)) 
+		values_nb.append(precision_score(y, nb_pred, pos_label = 4))
 		
 		with open('metrics/nb.csv', 'a') as dataFile:
 			writeFile = csv.writer(dataFile, dialect = 'excel')
 			for i in values_nb:
-				writeFile.writerow(i)
+				writeFile.writerow(str(i))
 		
 		# K-MEANS METRICS
 		values_kmm = []
@@ -135,12 +147,16 @@ def streamer(rdd):
 		result_kmm = result_kmm + model_kmm.score(x,y)
 		kmm_pred = model_kmm.predict(x)
 		
-		values_kmm.append(count, model_kmm.score(x,y), f1_score(y, kmm_pred, pos_label = 4), recall_score(y, kmm_pred, pos_label = 4), precision_score(y, kmm_pred, pos_label = 4))
+		values_kmm.append(count)
+		values_kmm.append(model_kmm.score(x,y))
+		values_kmm.append(f1_score(y, kmm_pred, pos_label = 4,average='micro'))
+		values_kmm.append(recall_score(y, kmm_pred, pos_label = 4,average='micro'))
+		values_kmm.append(precision_score(y, kmm_pred, pos_label = 4,average='micro'))
 		
 		with open('metrics/kmm.csv', 'a') as dataFile:
 			writeFile = csv.writer(dataFile, dialect = 'excel')
 			for i in values_kmm:
-				writeFile.writerow(i)
+				writeFile.writerow(str(i))
 		
 		
 		count = count + 1 
@@ -153,4 +169,3 @@ dstream1.foreachRDD(lambda x : streamer(x))
 
 ssc.start()
 ssc.awaitTermination()
-
