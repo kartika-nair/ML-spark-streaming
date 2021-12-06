@@ -17,6 +17,7 @@ from pyspark.sql.types import *
 from pyspark.ml.feature import StringIndexer,VectorAssembler #OneHotEncoderEstimator
 import sklearn.linear_model as lm 
 import pickle
+import joblib
 
 import numpy as np
 
@@ -51,7 +52,8 @@ def model(df):
 	
 	model_lm=lm.LogisticRegression(warm_start=True)
 	model_lm=model_lm.fit(x,y.ravel())
+
+	joblib.dump(model_lm, 'Logistic_Regression.pkl')
 	
-	joblib.dump(model_lm,'Logistic_Regression.pkl')
-	result1=model_lm.score(x, y)
-	return result1
+	result = model_lm.score(x, y)
+	return result
