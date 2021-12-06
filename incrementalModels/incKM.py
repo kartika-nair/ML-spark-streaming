@@ -15,7 +15,7 @@ import pickle
 import joblib
 import numpy as np
 
-def KMeansClustering(df):
+def kmm(df):
 	indexer = StringIndexer(inputCol="Tweet", outputCol="Tweets_Indexed", stringOrderType='alphabetAsc')
 	pipeline = Pipeline(stages=[indexer])
 	pipelineFit = pipeline.fit(df)
