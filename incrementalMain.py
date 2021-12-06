@@ -11,6 +11,7 @@ import json
 # FILE IMPORTS
 from incrementalModels import incLR, incNB, incSVM, incKM
 from PreProcessing import preproc
+import pickle 
 
 spark = SparkSession.builder.master('local[2]').appName('Sentiment').getOrCreate()
 ssc = StreamingContext(spark.sparkContext, 1)
@@ -26,9 +27,8 @@ def streamer(rdd):
 		df = df.na.drop()
 		df = preproc(df)
 		
-		accuracy_logRegression = incLR.logRegression(df)
+		accuracy_logRegression = incLR.model(df)
 		print('Logistic Regression Accuracy =', accuracy_logRegression)
-		
 		'''
 		accuracy_NB = incNB.nBayes(df)
 		print('Naive Bayes Accuracy =', accuracy_NB)
@@ -39,7 +39,6 @@ def streamer(rdd):
 		error_KMM = incKM.kmm(df)
 		print('K-Means Clustering Squared Error =', error_KMM)
 		'''
-
 dstream = ssc.socketTextStream("localhost", 6100)
 
 dstream1 = dstream.flatMap(lambda line: line.split("\n"))
@@ -47,3 +46,5 @@ dstream1.foreachRDD(lambda x : streamer(x))
 
 ssc.start()
 ssc.awaitTermination()
+ssc.stop()
+
