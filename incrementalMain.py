@@ -26,16 +26,16 @@ def streamer(rdd):
 		
 		df = df.na.drop()
 		df = preproc(df)
-		
+		'''
 		accuracy_logRegression = incLR.model(df)
 		print('Logistic Regression Accuracy =', accuracy_logRegression)
-		'''
+
 		accuracy_NB = incNB.nBayes(df)
 		print('Naive Bayes Accuracy =', accuracy_NB)
-		
-		accuracy_SVM = incSVM.linSVC(df)
+		'''		
+		accuracy_SVM = incSVM.model_lin_svc(df)
 		print('Linear SVM Accuracy =', accuracy_SVM)
-		
+		'''
 		error_KMM = incKM.kmm(df)
 		print('K-Means Clustering Squared Error =', error_KMM)
 		'''
@@ -48,3 +48,6 @@ ssc.start()
 ssc.awaitTermination()
 ssc.stop()
 
+filename='model_lm_1000.sav'
+pickle.dump(model_lm, open(filename, 'wb'))
+print("LM Model saved successfully")
