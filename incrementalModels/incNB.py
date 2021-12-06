@@ -2,24 +2,42 @@ import sklearn as sk
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import BernoulliNB
 from sklearn.metrics import accuracy_score
-from sklearn.utils import column_or_1d
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import make_pipeline
+from sklearn.model_selection import train_test_split
+
+from pyspark.ml.feature import HashingTF, IDF, Tokenizer
+from pyspark.ml.feature import StringIndexer
+from pyspark.ml import Pipeline
+from pyspark.sql.functions import col, size
+from pyspark.ml.evaluation import BinaryClassificationEvaluator
+
+from sklearn import preprocessing 
+from pyspark.sql.types import *
+from pyspark.ml.feature import StringIndexer,VectorAssembler #OneHotEncoderEstimator
+import sklearn.naive_bayes as nb
+import pickle
+import joblib
 
 import numpy as np
 
+
 def nBayes(df):
 	
-	bern = BernoulliNB()
-	accuracy = -1
+	indexer = StringIndexer(inputCol = "Tweet", outputCol = "Tweets_Indexed", stringOrderType = 'alphabetAsc')
+	pipeline = Pipeline(stages = [indexer])
+	pipelineFit = pipeline.fit(df)
+	dataset = pipelineFit.transform(df)
+
+	new_df = dataset.select(['Tweets_Indexed'])
+	new_df_target = dataset.select(['Sentiment'])
 	
-	x = np.asarray(df.select('Sentiment').collect())
-	y = np.asarray(df.select('Tweet').collect())
-	y = column_or_1d(y)
+	twt = np.array(new_df.select('Tweets_Indexed').collect())
+	sent = np.array(new_df_target.select('Sentiment').collect())
 	
-	X_train, X_test, y_train, y_test = train_test_split(x, y, test_size = 0.1, random_state = 13)
+	model_nb = BernoulliNB()
+	model_nb = model_nb.fit(twt, sent.ravel())
 	
-	bern.partial_fit(X_train, y_train, classes = [0, 4])
-	predictions = bern.predict(X_test)
-	
-	accuracy = accuracy_score(y_test, predictions)
-	
-	return accuracy
+	joblib.dump(model_nb,'naiveBayes.pkl')
+	acc = model_nb.score(twt, sent)
+	return acc
