@@ -24,7 +24,7 @@ def kmm(df):
 	
 	kmeans = KMeans().setK(2).setSeed(1)
 	model = kmeans.fit(train_df)
-	centers = model.clusterCenters()
+	# centers = model.clusterCenters()
 	
 	predictions = model.transform(val_df)
 	
