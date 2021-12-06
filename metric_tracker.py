@@ -38,7 +38,32 @@ result_svm = 0
 result_nb = 0
 result_kmm = 0
 
+# INITIALISE CSV FILES
+def init_csv():
+	values = ['Batch', 'Accuracy', 'F1', 'Recall', 'Precision']
+
+	with open('metrics/logRegression.csv', 'a') as dataFile:
+		writeFile = csv.writer(dataFile, dialect = 'excel')
+		#for i in values:
+		writeFile.writerow(values)
+			
+	with open('metrics/svm.csv', 'w') as dataFile:
+		writeFile = csv.writer(dataFile, dialect = 'excel')
+		# for i in values:
+		writeFile.writerow(values)
+			
+	with open('metrics/nb.csv', 'w') as dataFile:
+		writeFile = csv.writer(dataFile, dialect = 'excel')
+		#for i in values:
+		writeFile.writerow(values)
+
+	with open('metrics/kmm.csv', 'w') as dataFile:
+		writeFile = csv.writer(dataFile, dialect = 'excel')
+		#for i in values:
+		writeFile.writerow(values)
+
 # METRICS FUNCTION
+
 def streamer(rdd):
 
 	rddValues = rdd.collect()
@@ -66,30 +91,7 @@ def streamer(rdd):
 
 		x = np.array(df_new.select('Tweets_Indexed').collect())
 		y = np.array(df_new_target.select('Sentiment').collect())
-		
-		# INITIALISE CSV FILES
-		values = ['Batch', 'Accuracy', 'F1', 'Recall', 'Precision']
-		
-		with open('metrics/logRegression.csv', 'a') as dataFile:
-			writeFile = csv.writer(dataFile, dialect = 'excel')
-			for i in values:
-				writeFile.writerow(i)
-				
-		with open('metrics/svm.csv', 'a') as dataFile:
-			writeFile = csv.writer(dataFile, dialect = 'excel')
-			for i in values:
-				writeFile.writerow(i)
-				
-		with open('metrics/nb.csv', 'a') as dataFile:
-			writeFile = csv.writer(dataFile, dialect = 'excel')
-			for i in values:
-				writeFile.writerow(i)
-		
-		with open('metrics/kmm.csv', 'a') as dataFile:
-			writeFile = csv.writer(dataFile, dialect = 'excel')
-			for i in values:
-				writeFile.writerow(i)
-		
+			
 		# LOGISTIC REGRESSION METRICS
 		values_lr = []
 		
@@ -104,8 +106,7 @@ def streamer(rdd):
 		
 		with open('metrics/logRegression.csv', 'a') as dataFile:
 			writeFile = csv.writer(dataFile, dialect = 'excel')
-			for i in values_lr:
-				writeFile.writerow(str(i))
+			writeFile.writerow(values_lr)
 
 		# SVM METRICS
 		values_svm = []
@@ -121,8 +122,7 @@ def streamer(rdd):
 		
 		with open('metrics/svm.csv', 'a') as dataFile:
 			writeFile = csv.writer(dataFile, dialect = 'excel')
-			for i in values_svm:
-				writeFile.writerow(str(i))
+			writeFile.writerow(values_svm)
 		
 		# NAIVE BAYES METRICS
 		values_nb = []
@@ -138,8 +138,7 @@ def streamer(rdd):
 		
 		with open('metrics/nb.csv', 'a') as dataFile:
 			writeFile = csv.writer(dataFile, dialect = 'excel')
-			for i in values_nb:
-				writeFile.writerow(str(i))
+			writeFile.writerow(values_nb)
 		
 		# K-MEANS METRICS
 		values_kmm = []
@@ -155,15 +154,14 @@ def streamer(rdd):
 		
 		with open('metrics/kmm.csv', 'a') as dataFile:
 			writeFile = csv.writer(dataFile, dialect = 'excel')
-			for i in values_kmm:
-				writeFile.writerow(str(i))
+			writeFile.writerow(values_kmm)
 		
 		
 		count = count + 1 
 
 #STREAMING		
 dstream = ssc.socketTextStream("localhost", 6100)
-
+init_csv()
 dstream1 = dstream.flatMap(lambda line: line.split("\n"))
 dstream1.foreachRDD(lambda x : streamer(x))
 
