@@ -20,9 +20,11 @@ import pickle
 import joblib
 
 import numpy as np
+from sklearn.model_selection import GridSearchCV
 
 def logRegression(df):
-	
+	c_space = np.logspace(-5, 8, 15)
+	param_grid = {'C': c_space}
 	indexer = StringIndexer(inputCol="Tweet", outputCol="Tweets_Indexed", stringOrderType='alphabetAsc')
 	pipeline = Pipeline(stages=[indexer])
 	pipelineFit = pipeline.fit(df)
@@ -35,8 +37,9 @@ def logRegression(df):
 	y=np.array(new_df_target.select('Sentiment').collect())
 	
 	model_lm=lm.LogisticRegression(warm_start=True)
-	model_lm=model_lm.fit(x,y.ravel())
-
+	logreg_cv = GridSearchCV(lm.LogisticRegression(), param_grid, cv = 5)
+	# model_lm=model_lm.fit(x,y.ravel())
+	model_lm = logreg_cv.fit(x,y.ravel())
 	joblib.dump(model_lm, 'Logistic_Regression.pkl')
 	
 	result = model_lm.score(x, y)
