@@ -64,10 +64,11 @@ def streamer(rdd):
 		y=np.array(df_new_target.select('Sentiment').collect())
 
 		result_lm = result_lm + model_lm.score(x,y)
-		print("Logistic Regression for batch",count,"is",result_lm,sep=' ')
-		# result_svm = result_svm + model_svm.score(x,y)
-		# result_nb = result_nb + model_nb.score(x,y)
-		
+		print("Logistic Regression Accuracy for batch",count,"is",result_lm,sep=' ')
+		result_svm = result_svm + model_svm.score(x,y)
+		print("SVM Accuracy for batch",count,"is",result_lm,sep=' ')
+		result_nb = result_nb + model_nb.score(x,y)
+		print("Naive Bayes Accuracy for batch",count,"is",result_lm,sep=' ')
 		
 		count = count + 1 
 		
@@ -78,14 +79,13 @@ dstream1.foreachRDD(lambda x : streamer(x))
 
 ssc.start()
 ssc.awaitTermination()
-ssc.stop()
 
 # Get average accuracies  
 acc_lm = result_lm / count
-# acc_svm = result_svm / count
-# acc_nb = result_nb / count
+acc_svm = result_svm / count
+acc_nb = result_nb / count
 
 print("Test Accuracy LogRegression Average: ", acc_lm*100 , sep=" ")
-# print("Test Accuracy SGD Average : ", acc_svm*100 , sep=" ")
-# print("Test Accuracy Naive Bayes Average: ", acc_nb*100 , sep=" ")
+print("Test Accuracy SGD Average : ", acc_svm*100 , sep=" ")
+print("Test Accuracy Naive Bayes Average: ", acc_nb*100 , sep=" ")
 
