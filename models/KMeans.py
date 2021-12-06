@@ -22,7 +22,7 @@ def kmm(df):
 	train_df = pipelineFit.transform(subsetData[0])
 	val_df = pipelineFit.transform(subsetData[1])
 	
-	kmeans = KMeans().setK(10).setSeed(1)
+	kmeans = KMeans().setK(2).setSeed(1)
 	model = kmeans.fit(train_df)
 	centers = model.clusterCenters()
 	
