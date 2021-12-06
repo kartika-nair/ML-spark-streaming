@@ -42,7 +42,7 @@ result_kmm = 0
 def init_csv():
 	values = ['Batch', 'Accuracy', 'F1', 'Recall', 'Precision']
 
-	with open('metrics/logRegression.csv', 'a') as dataFile:
+	with open('metrics/logRegression.csv', 'w') as dataFile:
 		writeFile = csv.writer(dataFile, dialect = 'excel')
 		#for i in values:
 		writeFile.writerow(values)
@@ -147,6 +147,7 @@ def streamer(rdd):
 		kmm_pred = model_kmm.predict(x)
 		
 		values_kmm.append(count)
+		values_kmm.append(model_kmm.score(x,y))
 		values_kmm.append(f1_score(y, kmm_pred, pos_label = 4,average='micro'))
 		values_kmm.append(recall_score(y, kmm_pred, pos_label = 4,average='micro'))
 		values_kmm.append(precision_score(y, kmm_pred, pos_label = 4,average='micro'))
